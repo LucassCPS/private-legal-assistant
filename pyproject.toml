@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "private-legal-assistant"
+version = "0.0.1"
+description = ""
+authors = ["Lucas Coelho Pini de Sousa <lucas.pini@hotmail.com>"]
+readme = "README.md"
+packages = [{ include = "legal_assistant" }]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+llama-stack = "^0.2.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
