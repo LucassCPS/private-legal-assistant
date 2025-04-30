@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "private-legal-assistant"
-version = "0.0.1"
+version = "0.0.2"
 description = ""
 authors = ["Lucas Coelho Pini de Sousa <lucas.pini@hotmail.com>"]
 readme = "README.md"
@@ -9,6 +9,10 @@ packages = [{ include = "legal_assistant" }]
 [tool.poetry.dependencies]
 python = "^3.12"
 llama-stack = "^0.2.2"
+langchain-community = "^0.3.23"
+pypdf = "^5.4.0"
+langchain-chroma = "^0.2.3"
+langchain-ollama = "^0.3.2"
 
 [build-system]
 requires = ["poetry-core"]
