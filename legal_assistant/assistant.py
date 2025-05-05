@@ -11,8 +11,8 @@ import logging
 
 logging.basicConfig(level=logging.WARNING, format="%(asctime)s - %(levelname)s - %(message)s")
 
-def initialize_model(model_name: str):
-    return OllamaLLM(model=model_name)
+def initialize_model(model_name: str, model_temperature: float = 0.7, model_ctx: int = 4000, model_num_gpu: int = 1):
+    return OllamaLLM(model=model_name, temperature=model_temperature, num_ctx=model_ctx, num_gpu=model_num_gpu)
 
 def extract_sensible_data(text: str):
     messages = [
@@ -55,7 +55,7 @@ def extract_sensible_data(text: str):
     #     temperature=0.7,
     # )
     
-    model = initialize_model(LLM_MODEL)
+    model = initialize_model(model_name=LLM_MODEL)
     response = model.invoke(messages)
     logging.info("Extracted sensitive data.")
     return response
@@ -64,26 +64,42 @@ def process_query(query_text: str):
     settings = Settings(anonymized_telemetry=False)
     db = Chroma(persist_directory=str(CHROMA_PATH), embedding_function=get_embedding_function(), client_settings=settings)
     try:
-        results = db.similarity_search_with_score(query_text, k=10)
+        results = db.similarity_search_with_score(query_text, k=5)
         context_text = "\n\n---\n\n".join([doc.page_content for doc, _score in results])
 
         prompt_template_str = """
-        Responda a questão baseando-se apenas no seguinte contexto:
+        Você é um assistente especializado em fornecer respostas objetivas, claras e baseadas unicamente nas informações fornecidas. Considere que as respostas serão fornecidas a cidadãos comuns, portanto utilize uma linguagem apropriada e de fácil entendimento. Responda à questão com base exclusivamente no contexto abaixo:
 
         {context}
 
         ---
 
-        Responda a questão exclusivamente com base no contexto acima, se a resposta não estiver no contexto, declare que você não pode pode responder: {question}
-        """
+        Se a resposta não puder ser encontrada no contexto fornecido ou não houver evidências, informe claramente que a informação não está disponível. Não invente ou especule sobre a resposta. 
+        Pergunta: {question}
         
+         **Explicação**: 
+        Explique como você chegou à resposta, mencionando especificamente os trechos ou documentos utilizados para apoiar a sua resposta. Detalhe como cada um dos documentos foi relevante para a construção da resposta.
+        """
+
         prompt_template = ChatPromptTemplate.from_template(prompt_template_str)
         prompt = prompt_template.format(context=context_text, question=query_text)
 
-        model = initialize_model(LLM_MODEL)
+        model = initialize_model(model_name=LLM_MODEL, model_temperature=0.4, model_ctx=2048, model_num_gpu=1)
         response_text = model.invoke(prompt)
 
-        sources = [doc.metadata.get("id", None) for doc, _score in results]
+        results_sorted = sorted(results, key=lambda x: x[1], reverse=True)
+        sources = [doc.metadata.get("id", None) for doc, _score in results_sorted]
+        
+        print("\n----------------------")
+        for idx, (doc, score) in enumerate(results_sorted):
+            print(f"--- Chunk {idx + 1} ---")
+            print(f"Score: {score}")
+            print(f"Content: {doc.page_content}\n")
+        print(f"Sources: {sources}")
+        print("----------------------\n")
+        #formatted_response = f"\n---------------------\nResponse: {response_text}\nSources: {sources}\n---------------------\n"
+        #print(formatted_response)
+        
         return response_text
     except Exception as e:
         logging.error(f"Error processing query: {e}")

@@ -1,5 +1,6 @@
 import os
 import shutil
+import re
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain.schema.document import Document
 from langchain_ollama import OllamaEmbeddings
@@ -29,8 +30,9 @@ def populate_database():
         return
 
     print("✨ Populating database")
-    documents = load_documents()
-    chunks = split_documents(documents)
+    loaded_docs = load_documents()
+    norm_docs = normalize_documents(loaded_docs)
+    chunks = split_documents(norm_docs)
     add_to_chroma(chunks)
 
 def load_documents():
@@ -45,12 +47,24 @@ def load_documents():
 
 def split_documents(documents: list[Document]):
     text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=800,
-        chunk_overlap=80,
+        chunk_size=1000,
+        chunk_overlap=100,
         length_function=len,
         is_separator_regex=False,
     )
     return text_splitter.split_documents(documents)
+
+def normalize_documents(documents: list[Document]):
+    for doc in documents:
+        text = doc.page_content
+        
+        # Remove unnecessary breaklines and spaces
+        text = re.sub(r"\n+", " ", text)
+        text = re.sub(r" +", " ", text)
+        text = text.strip()
+        
+        doc.page_content = text
+    return documents
 
 def add_to_chroma(chunks: list[Document]):
     settings = Settings(anonymized_telemetry=False)
@@ -60,7 +74,7 @@ def add_to_chroma(chunks: list[Document]):
 
     existing_items = db.get(include=[])
     existing_ids = set(existing_items["ids"])
-    print(f"Number of existing documents in DB: {len(existing_ids)}")
+    print(f"📄 Number of existing chunks in DB: {len(existing_ids)}")
 
     new_chunks = []
     for chunk in chunks_with_ids:
@@ -68,11 +82,11 @@ def add_to_chroma(chunks: list[Document]):
             new_chunks.append(chunk)
 
     if len(new_chunks):
-        print(f"👉 Adding new documents: {len(new_chunks)}")
+        print(f"👉 Adding new chunks: {len(new_chunks)}")
         new_chunk_ids = [chunk.metadata["id"] for chunk in new_chunks]
         db.add_documents(new_chunks, ids=new_chunk_ids)
     else:
-        print("✅ No new documents to add")
+        print("✅ No new chunks to add")
 
 def calculate_chunk_ids(chunks):
     last_page_id = None
