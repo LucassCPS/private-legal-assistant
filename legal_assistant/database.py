@@ -1,6 +1,8 @@
 import os
 import shutil
 import re
+import logging
+
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain.schema.document import Document
 from langchain_ollama import OllamaEmbeddings
@@ -11,8 +13,10 @@ from chromadb.config import Settings
 
 from config import CHROMA_PATH, DOCUMENTS_PATH, LLM_EMBEDDING_MODEL
 
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+
 def update_database():
-    print("✨ Updating database")
+    logging.info("Atualizando base de dados")
     if check_database_exists():
         clear_database()
     populate_database()
@@ -21,7 +25,7 @@ def check_database_exists():
     return True if os.path.exists(CHROMA_PATH) else False
 
 def clear_database():
-    print("✨ Clearing database")
+    logging.info("Limpando base existente")
     if os.path.exists(CHROMA_PATH):
         shutil.rmtree(CHROMA_PATH)
 
@@ -29,7 +33,7 @@ def populate_database():
     if check_database_exists():
         return
 
-    print("✨ Populating database")
+    logging.info("Carregando e processando documentos")
     loaded_docs = load_documents()
     norm_docs = normalize_documents(loaded_docs)
     chunks = split_documents(norm_docs)
@@ -43,6 +47,7 @@ def load_documents():
             loader = PyPDFLoader(file_path)
             docs = loader.load()
             all_docs.extend(docs)
+    logging.info(f"Documentos carregados: {len(all_docs)}")
     return all_docs
 
 def split_documents(documents: list[Document]):
@@ -74,7 +79,8 @@ def add_to_chroma(chunks: list[Document]):
 
     existing_items = db.get(include=[])
     existing_ids = set(existing_items["ids"])
-    print(f"📄 Number of existing chunks in DB: {len(existing_ids)}")
+    
+    logging.info(f"Chunks existentes no DB: {len(existing_ids)}")
 
     new_chunks = []
     for chunk in chunks_with_ids:
@@ -82,11 +88,11 @@ def add_to_chroma(chunks: list[Document]):
             new_chunks.append(chunk)
 
     if len(new_chunks):
-        print(f"👉 Adding new chunks: {len(new_chunks)}")
+        logging.info(f"Novos chunks a adicionar: {len(new_chunks)}")
         new_chunk_ids = [chunk.metadata["id"] for chunk in new_chunks]
         db.add_documents(new_chunks, ids=new_chunk_ids)
     else:
-        print("✅ No new chunks to add")
+        logging.info("Nenhum chunk novo para adicionar")
 
 def calculate_chunk_ids(chunks):
     last_page_id = None

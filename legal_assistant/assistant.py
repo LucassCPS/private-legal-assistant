@@ -1,104 +1,91 @@
 from langchain.prompts import ChatPromptTemplate
-from langchain_core.messages import SystemMessage, HumanMessage
-from langchain_ollama import OllamaLLM
 from langchain_chroma import Chroma
+import logging
 
 from chromadb.config import Settings
 
 from database import get_embedding_function
-from config import CHROMA_PATH, LLM_MODEL
-import logging
+from anonymization import extract_sensible_data, anonymize_text
+from utils import initialize_model
+from config import CHROMA_PATH, LLM_RESPONSE_GENERATION_MODEL
 
-logging.basicConfig(level=logging.WARNING, format="%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
-def initialize_model(model_name: str, model_temperature: float = 0.7, model_ctx: int = 4000, model_num_gpu: int = 1):
-    return OllamaLLM(model=model_name, temperature=model_temperature, num_ctx=model_ctx, num_gpu=model_num_gpu)
-
-def extract_sensible_data(text: str):
-    messages = [
-        SystemMessage(content="""
-    Seu objetivo é analisar o texto fornecido pelo usuário e identificar qualquer informação sensível que ele possa ter compartilhado. As informações sensíveis incluem, mas não se limitam a:
-
-    - Nome completo ou parcial
-    - Número de documentos pessoais (CPF, RG, CNH, etc.)
-    - Endereço residencial ou local de trabalho
-    - Nomes de parentes, cônjuges ou dependentes
-    - Dados de contato como e-mail ou número de telefone
-    - Localização geográfica ou nome de cidade
-    - Informações financeiras ou bancárias
-    - Informações jurídicas específicas que permitam identificação pessoal
-
-    Você deve retornar um objeto JSON com todas as informações sensíveis extraídas, categorizando-as corretamente. Apenas inclua dados que estejam diretamente no texto fornecido. Não adicione entradas no JSON de informações que não existem ou não foram fornecidas na mensagem do usuário. Mantenha a privacidade e a precisão como prioridade.
-
-    Formato de saída esperado:
-    ```json
-    {
-    "informacoes_sensiveis": [
-        {"categoria": "nome", "valor": "João da Silva"},
-        {"categoria": "documento", "valor": "CPF 123.456.789-00"},
-        {"categoria": "endereco", "valor": "Rua das Flores, 123"},
-        {"categoria": "telefone", "valor": "(11) 91234-5678"},
-        {"categoria": "cidade", "valor": "São Paulo"},
-        {"categoria": "nome_parente", "valor": "Maria da Silva"}
-    ]
-    }
-    """  
-        ),
-        HumanMessage(content=text),
-    ]
-    
-    # model = OllamaLLM(
-    #     model=LLM_MODEL,
-    #     num_ctx=4000,
-    #     seed=174,
-    #     num_gpu=1,
-    #     temperature=0.7,
-    # )
-    
-    model = initialize_model(model_name=LLM_MODEL)
-    response = model.invoke(messages)
-    logging.info("Extracted sensitive data.")
-    return response
-
-def process_query(query_text: str):
-    settings = Settings(anonymized_telemetry=False)
-    db = Chroma(persist_directory=str(CHROMA_PATH), embedding_function=get_embedding_function(), client_settings=settings)
-    try:
-        results = db.similarity_search_with_score(query_text, k=5)
-        context_text = "\n\n---\n\n".join([doc.page_content for doc, _score in results])
-
-        prompt_template_str = """
-        Você é um assistente especializado em fornecer respostas objetivas, claras e baseadas unicamente nas informações fornecidas. Considere que as respostas serão fornecidas a cidadãos comuns, portanto utilize uma linguagem apropriada e de fácil entendimento. Responda à questão com base exclusivamente no contexto abaixo:
-
+def get_response_generation_prompt():
+    return """
+        Você é um assistente especializado em fornecer respostas objetivas, claras e baseadas unicamente nas informações fornecidas. 
+        Considere que as respostas serão fornecidas a cidadãos comuns, portanto utilize uma linguagem apropriada e de fácil entendimento. 
+        Responda à questão com base exclusivamente no contexto abaixo:
         {context}
 
         ---
-
-        Se a resposta não puder ser encontrada no contexto fornecido ou não houver evidências, informe claramente que a informação não está disponível. Não invente ou especule sobre a resposta. 
+        Se a resposta não puder ser encontrada no contexto fornecido ou não houver evidências, informe claramente que a informação não está disponível. 
+        Não invente ou especule sobre a resposta. 
         Pergunta: {question}
-        
-         **Explicação**: 
-        Explique como você chegou à resposta, mencionando especificamente os trechos ou documentos utilizados para apoiar a sua resposta. Detalhe como cada um dos documentos foi relevante para a construção da resposta.
         """
 
-        prompt_template = ChatPromptTemplate.from_template(prompt_template_str)
-        prompt = prompt_template.format(context=context_text, question=query_text)
+def print_used_context(sources: str):
+    sorted_sources = sorted(sources, key=lambda x: x[1], reverse=True)
+    sources = [doc.metadata.get("id", None) for doc, _score in sorted_sources]
+    print("\n----------------------")
+    for idx, (doc, score) in enumerate(sorted_sources):
+        print(f"--- Chunk {idx + 1} ---")
+        print(f"Score: {score}")
+        print(f"Content: {doc.page_content}\n")
+    print(f"Sources: {sources}")
+    print("----------------------\n")
 
-        model = initialize_model(model_name=LLM_MODEL, model_temperature=0.4, model_ctx=2048, model_num_gpu=1)
+
+def log_used_sources(sources_with_scores):
+    sorted_sources = sorted(sources_with_scores, key=lambda x: x[1], reverse=True)
+    log_lines = ["\n----------------------\nFontes utilizadas:\n"]
+
+    for idx, (doc, score) in enumerate(sorted_sources, start=1):
+        source_id = doc.metadata.get("id", "sem_id")
+        content_preview = doc.page_content.strip()
+        if len(content_preview) > 300:
+            content_preview = content_preview[:300] + "..."
+
+        log_lines.append(f"Fonte {idx} (ID: {source_id})")
+        log_lines.append(f"Score: {score:.4f}")
+        log_lines.append(f"Trecho: {content_preview}\n")
+
+    source_ids = [doc.metadata.get("id", "sem_id") for doc, _ in sorted_sources]
+    log_lines.append(f"IDs das fontes: {source_ids}")
+    log_lines.append("\n----------------------\n")
+
+    logging.info("\n" + "\n".join(log_lines))
+
+
+def process_query(query_text: str):
+    logging.info("Received query: %s", query_text)
+
+    # Etapa 1: Anonimização
+    sensitive_data = extract_sensible_data(query_text)
+    logging.info("Dados sensíveis extraídos: %s", sensitive_data.get("dados", []))
+    
+    anonymized_query = anonymize_text(query_text, sensitive_data)    
+    print("\n[] Consulta anonimizada: ", anonymized_query)
+
+    db = Chroma(
+        persist_directory=str(CHROMA_PATH),
+        embedding_function=get_embedding_function(),
+        client_settings=Settings(anonymized_telemetry=False)
+    )
+    try:
+        # Etapa 2: Busca no banco de dados e criação do contexto para resposta
+        db_similar_results = db.similarity_search_with_score(anonymized_query, k=5)
+        context_text = "\n\n---\n\n".join([doc.page_content for doc, _score in db_similar_results])
+
+        # Etapa 3: Formatação do prompt e geração da resposta
+        prompt_template = ChatPromptTemplate.from_template(get_response_generation_prompt())
+        prompt = prompt_template.format(context=context_text, question=anonymized_query)
+
+        model = initialize_model(model_name=LLM_RESPONSE_GENERATION_MODEL, model_temperature=0.4, model_ctx=2048, model_num_gpu=1)
         response_text = model.invoke(prompt)
-
-        results_sorted = sorted(results, key=lambda x: x[1], reverse=True)
-        sources = [doc.metadata.get("id", None) for doc, _score in results_sorted]
         
-        print("\n----------------------")
-        for idx, (doc, score) in enumerate(results_sorted):
-            print(f"--- Chunk {idx + 1} ---")
-            print(f"Score: {score}")
-            print(f"Content: {doc.page_content}\n")
-        print(f"Sources: {sources}")
-        print("----------------------\n")
-        #formatted_response = f"\n---------------------\nResponse: {response_text}\nSources: {sources}\n---------------------\n"
-        #print(formatted_response)
+        #print_used_context(db_similar_results)
+        log_used_sources(db_similar_results)
         
         return response_text
     except Exception as e:
