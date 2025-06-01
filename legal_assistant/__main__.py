@@ -3,6 +3,7 @@ from assistant import process_query
 
 def main_menu():
     print("\n----- Assistente Jurídico Virtual -----\nDigite '0' para encerrar o programa.\nDigite '1' para atualizar a base de dados.\n---------------------------------------\n")
+    first_exec = True
     while True:
         query_text = input("Usuário: ").strip()
         if query_text == "0":
@@ -10,11 +11,12 @@ def main_menu():
             break
         if query_text == "1":
             update_database()
-        elif query_text == "":
+        elif query_text == "" and first_exec == False:
             print("O texto informado não pode ser vazio.")
         else:
             response = process_query(query_text)
             print(f"Assitente: {response}")
+        first_exec = False
 
 if __name__ == "__main__":
     main_menu()

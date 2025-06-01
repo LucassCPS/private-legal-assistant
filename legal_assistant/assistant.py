@@ -65,7 +65,7 @@ def process_query(query_text: str):
     logging.info("Dados sensíveis extraídos: %s", sensitive_data.get("dados", []))
     
     anonymized_query = anonymize_text(query_text, sensitive_data)    
-    print("\n[] Consulta anonimizada: ", anonymized_query)
+    logging.info("Anonymized query: %s", anonymized_query)
 
     db = Chroma(
         persist_directory=str(CHROMA_PATH),
