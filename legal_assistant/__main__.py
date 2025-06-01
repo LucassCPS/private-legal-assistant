@@ -1,22 +1,20 @@
 from database import update_database
-from assistant import process_query
+from legal_assistant.assistant import LegalAssistant
 
-def main_menu():
+def main_menu():    
     print("\n----- Assistente Jurídico Virtual -----\nDigite '0' para encerrar o programa.\nDigite '1' para atualizar a base de dados.\n---------------------------------------\n")
-    first_exec = True
+    assistant = LegalAssistant(use_memory=False)
     while True:
-        query_text = input("Usuário: ").strip()
-        if query_text == "0":
+        user_input = input("Usuário: ").strip()
+        if user_input == "0":
             print("Encerrando o programa...")
             break
-        if query_text == "1":
+        if user_input == "1":
             update_database()
-        elif query_text == "" and first_exec == False:
+        if not user_input:
             print("O texto informado não pode ser vazio.")
-        else:
-            response = process_query(query_text)
-            print(f"Assitente: {response}")
-        first_exec = False
+            continue
+        assistant.process_query(user_input)
 
 if __name__ == "__main__":
     main_menu()

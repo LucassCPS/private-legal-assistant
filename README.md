@@ -26,11 +26,6 @@ Em um terminal separado, inicie o ollama server através do comando:
 ### 5. Baixar os modelos necessários
 De modo a garantir que o assistente tenha acesso aos modelos corretos, baixe os modelos abaixo:  
 `ollama pull nomic-embed-text`
-`ollama pull llama3.2:3b-instruct-fp16`
-`ollama pull mistral:instruct`
-
-<!-- Em um outro terminal rode o modelo:  
-`ollama run llama3.2:3b-instruct-fp16 --keepalive -1m` -->
 
 ### 6. Executar o programa
 Para rodar o programa, execute o seguinte comando:  
