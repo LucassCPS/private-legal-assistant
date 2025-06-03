@@ -16,17 +16,15 @@ Com o **Poetry** instalado, Instale as dependencias com:
 `poetry install`
 
 ### 3. Instalar o Ollama
-O Ollama é utilizado para rodar modelos de IA para embeddings e processamento de queries. Para instalá-lo, utilize o comando abaixo:  
+O **Ollama** é utilizado para rodar modelos de IA para embeddings e processamento de queries. Para instalá-lo, utilize o comando abaixo:  
 `curl -fsSL https://ollama.com/install.sh | sh`
 
-### 4. Instalar o Ollama
-Em um terminal separado, inicie o ollama server através do comando:  
-`ollama serve`
+### 4. Baixar os modelos necessários
+De modo a garantir que o assistente tenha acesso aos modelos esperados pela aplicação, baixe os modelos abaixo:  
+`ollama pull nomic-embed-text`  
+`ollama pull gemma:2b`  
+**Obs.**: Os modelos são consideravelmente grandes; recomenda-se que haja pelo menos 10 GB de armazenamento livre no sistema.
 
-### 5. Baixar os modelos necessários
-De modo a garantir que o assistente tenha acesso aos modelos corretos, baixe os modelos abaixo:  
-`ollama pull nomic-embed-text`
-
-### 6. Executar o programa
+## Executar o programa
 Para rodar o programa, execute o seguinte comando:  
 `poetry run python3 legal-assistant`
