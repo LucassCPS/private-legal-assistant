@@ -28,3 +28,6 @@ De modo a garantir que o assistente tenha acesso aos modelos esperados pela apli
 ## Executar o programa
 Para rodar o programa, execute o seguinte comando:  
 `poetry run python3 legal-assistant`
+
+**Obs.**: Para atualizar a base de dados antes de iniciar o programa, utilize o comando:   
+`poetry run python3 legal-assistant --update-db`
