@@ -1,4 +1,3 @@
-import logging
 import sys
 import torch
 
@@ -12,7 +11,10 @@ from utils import initialize_model
 from legal_assistant.sensitive_data_handler import SensitiveDataHandler
 from config import CHROMA_PATH, LLM_RESPONSE_GENERATION_MODEL
 
-logging.basicConfig(level=logging.ERROR, format="%(asctime)s - %(levelname)s - %(message)s")
+import logging
+from logging_formatter import LOGGER_NAME
+
+logger = logging.getLogger(LOGGER_NAME)
 
 class LegalAssistant:
     def __init__(self, use_memory: bool = True):
@@ -35,12 +37,11 @@ class LegalAssistant:
     def _check_gpu(self):
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         if device.type == "cuda":
-            logging.info(f"GPU [{torch.cuda.get_device_name(0)}] detected and activated.")
+            logger.info(f"GPU [{torch.cuda.get_device_name(0)}] detected and activated.")
         else:
-            logging.info("GPU is not available. Therefore, your CPU will be used and responses may take longer.")
+            logger.warning("GPU is not available. Therefore, your CPU will be used and responses may take longer than usual.")
 
     def _initialize_anonymizer(self):
-        logging.info("Anonymization model initialized.")
         return SensitiveDataHandler()
 
     def get_response_generation_prompt(self):
@@ -65,12 +66,12 @@ class LegalAssistant:
             role = "Usuário" if msg.type == "human" else "Assistente"
             history.append(f"{role}: {msg.content}")
         
-        logging.info("Conversation history: %s", "\n".join(history))
+        logger.info("Conversation history: %s", "\n".join(history))
         return "\n".join(history)
 
     def log_used_sources(self, sources_with_scores):
         sorted_sources = sorted(sources_with_scores, key=lambda x: x[1], reverse=True)
-        log_lines = ["\n----------------------\nFontes utilizadas:\n"]
+        log_lines = ["\n----------------------\nUtilized sources:\n"]
         for idx, (doc, score) in enumerate(sorted_sources, start=1):
             source_id = doc.metadata.get("id", "sem_id")
             content_preview = doc.page_content.strip()
@@ -80,15 +81,11 @@ class LegalAssistant:
         source_ids = [doc.metadata.get("id", "sem_id") for doc, _ in sorted_sources]
         log_lines.append(f"Source IDs: {source_ids}")
         log_lines.append("\n----------------------\n")
-        logging.info("\n" + "\n".join(log_lines))
+        logger.info("\n" + "\n".join(log_lines))
 
     def process_query(self, query_text: str) -> str:
-        logging.info("Received query: %s", query_text)
-
-        # for now, we will not anonymize the query text (so we can test the system quicker)
         anonymized_query, replacements = self.sensitive_data_handler.anonymize(query_text)
-        #anonymized_query = query_text
-        logging.info("Anonymized query: %s", anonymized_query)
+        logger.info("Anonymized query: %s", anonymized_query)
 
         try:
             db_similar_results = self.db.similarity_search_with_score(anonymized_query, k=5)
@@ -110,7 +107,7 @@ class LegalAssistant:
                 response_text += str(chunk)
             print()
             
-            # self.log_used_sources(db_similar_results)
+            self.log_used_sources(db_similar_results)
             if self.memory:
                 self.memory.chat_memory.add_user_message(query_text)
                 self.memory.chat_memory.add_ai_message(response_text)
@@ -119,4 +116,4 @@ class LegalAssistant:
             print(f"--------------\nDeanonymized response: {response_text}\n--------------\n")
 
         except Exception as e:
-            logging.error(f"Error processing query: {e}")
+            logger.error(f"Error processing query: {e}")
