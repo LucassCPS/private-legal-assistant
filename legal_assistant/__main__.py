@@ -6,7 +6,7 @@ from logging_formatter import config_logger
 
 def main_menu():    
     print("\n----- Assistente Jurídico Virtual -----\nDigite '0' para encerrar o programa.")
-    assistant = LegalAssistant(use_memory=False)
+    assistant = LegalAssistant()
     while True:
         user_input = input("Usuário: ").strip()
         if user_input == "0":

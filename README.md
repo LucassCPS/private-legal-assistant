@@ -32,3 +32,6 @@ Para rodar o programa, execute o seguinte comando:
 
 **Obs.**: Para atualizar a base de dados antes de iniciar o programa, utilize o comando:   
 `poetry run python3 legal-assistant --update-db`
+
+Para rodar o programa com interface web, execute o comando:
+`poetry run streamlit run /legal_assistant/app.py --server.fileWatcherType none`
