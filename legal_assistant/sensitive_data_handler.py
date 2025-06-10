@@ -10,6 +10,10 @@ from logging_formatter import LOGGER_NAME
 
 logger = logging.getLogger(LOGGER_NAME)
 
+class JsonExtractionError(Exception):
+    """Exceção customizada para falhas na extração de JSON."""
+    pass
+
 class SensitiveDataHandler:
     def __init__(self):
         self.model = initialize_model(model_name=LLM_ANONYMIZATION_MODEL, model_temperature=0.1, model_ctx=4096)
@@ -91,44 +95,47 @@ class SensitiveDataHandler:
                     }"
         """
 
-    def _clean_response(self, response: str):
-        if not isinstance(response, str):
-            return {"dados": []}
-
+    def _extract_json_string(self, text: str) -> str | None:
+        if not isinstance(text, str):
+            return None
         try:
-            beggining = response.index('{') if '{' in response else response.index('[')
-            ending = response.rindex('}') if '}' in response else response.rindex(']')
-            
-            current_json = response[beggining : ending + 1]
-        except ValueError as e:
-            logger.error(f"Failed to parse JSON from model response: {e}")
-            return {"dados": []}
-
-        cleaned_chars = []
-        for char in current_json:
-            if char.isprintable() or char in ('\n', '\t', '\r'):
-                cleaned_chars.append(char)
-        
-        cleaned_response = "".join(cleaned_chars)
-        logger.info(f"Extracted sensible data: {cleaned_response}")
-        try:
-            return json.loads(cleaned_response)
-        except json.JSONDecodeError as e:
-            logger.error(f"Failed to parse JSON from model response: {e}")
-            return {"dados": []}
+            start_index = text.index('{')
+            end_index = text.rindex('}') + 1
+            json_str = text[start_index:end_index]
+            cleaned_str = "".join(char for char in json_str if char.isprintable() or char in ('\n', '\t', '\r'))
+            return cleaned_str
+        except ValueError:
+            logger.warning("It was not possible to find a valid JSON in the model's response.")
+            return None
 
     def extract(self, text: str) -> dict:
         messages = [
             SystemMessage(content=self._get_prompt()),
             HumanMessage(content=text),
         ]
-        try:
-            response = self.model.invoke(messages)
-            cleaned_response = self._clean_response(response)
-            return cleaned_response
-        except Exception as e:
-            logger.error(f"Error while extracting sensible data: {e}")
-            return {"dados": []}
+        
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                logger.info(f"Attempt to extract sensitive data [Attempt {attempt + 1}/{max_retries}]")
+                response_text = self.model.invoke(messages)
+                json_string = self._extract_json_string(response_text)
+                
+                if json_string:
+                    parsed_json = json.loads(json_string)
+                    logger.info(f"JSON successfully extracted: {parsed_json}")
+                    return parsed_json
+                else:
+                    raise ValueError("JSON string not found in the response.")
+
+            except (json.JSONDecodeError, ValueError) as e:
+                logger.warning(f"Attempt failed {attempt + 1}: {e}.")
+                if attempt < max_retries - 1:
+                    logger.info("Trying again...")
+                else:
+                    logger.error("All attempts to extract a valid JSON have failed.")
+        
+        raise JsonExtractionError("Unable to extract a valid JSON after multiple attempts.")
 
     def anonymize(self, text: str) -> str:
         sensitive_data = self.extract(text)
