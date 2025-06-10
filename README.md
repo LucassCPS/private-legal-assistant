@@ -21,9 +21,10 @@ O **Ollama** é utilizado para rodar modelos de IA para embeddings e processamen
 
 ### 4. Baixar os modelos necessários
 De modo a garantir que o assistente tenha acesso aos modelos esperados pela aplicação, baixe os modelos abaixo:  
-`ollama pull nomic-embed-text`  
-`ollama pull gemma:2b`  
-**Obs.**: Os modelos são consideravelmente grandes; recomenda-se que haja pelo menos 10 GB de armazenamento livre no sistema.
+`ollama pull nomic-embed-text`
+`òllama pull mistral:7b`  
+`ollama pull gemma3:1b`  
+**Obs.**: Os modelos são consideravelmente grandes; recomenda-se que haja pelo menos 6 GB de armazenamento livre no sistema (274MB para nomic-embed, 4.1GB para mistral, 815MB para o gemma3).
 
 ## Executar o programa
 Para rodar o programa, execute o seguinte comando:  
