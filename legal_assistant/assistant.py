@@ -83,7 +83,7 @@ class LegalAssistant:
         log_lines.append("\n----------------------\n")
         logger.info("\n" + "\n".join(log_lines))
 
-    def process_query(self, query_text: str, history: list) -> str:
+    def process_query(self, query_text: str, history: list = [], web_interface = False) -> str:
         try:
             anonymized_query, replacements = self.sensitive_data_handler.anonymize(query_text)
             logger.info("Anonymized query: %s", anonymized_query)
@@ -103,8 +103,13 @@ class LegalAssistant:
             response_text = self.model.invoke(prompt)
             
             self.log_used_sources(db_similar_results)
-                
+            logger.info("Anonymized response: %s", response_text)
+
             final_response = self.sensitive_data_handler.deanonymize(response_text, replacements)
+
+            if not web_interface:
+                print(final_response)
+
             return {
                 "final_response": final_response,
                 "anonymized_query": anonymized_query,

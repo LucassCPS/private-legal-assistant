@@ -9,7 +9,16 @@ Antes de executar o sistema, é necessário instalar algumas dependências.
 ### 1. Instalar o Poetry
 
 O **Poetry** é utilizado para gerenciamento de dependências nesse projeto. Para instalá-lo, execute o seguinte comando:  
-`curl -sSL https://install.python-poetry.org | python3 -l`
+`curl -sSL https://install.python-poetry.org | python3 -`   
+
+Adicione o **Poetry** ao PATH com:  
+`export PATH="HOME/.local/bin:$PATH"`
+
+Recarregue o shell (mude o comando de acordo com o seu shell):   
+`source ~/.bashrc`
+
+Verifique se o **Poetry** está acessível:
+`poetry --version`
 
 ### 2. Instalar as dependências do projeto
 Com o **Poetry** instalado, Instale as dependencias com:  
@@ -27,11 +36,11 @@ De modo a garantir que o assistente tenha acesso aos modelos esperados pela apli
 **Obs.**: Os modelos são consideravelmente grandes; recomenda-se que haja pelo menos 6 GB de armazenamento livre no sistema (274MB para nomic-embed, 4.1GB para mistral, 815MB para o gemma3).
 
 ## Executar o programa
-Para rodar o programa, execute o seguinte comando:  
+Para rodar o programa e utilizá-lo via terminal, execute o seguinte comando:  
 `poetry run python3 legal-assistant`
 
 **Obs.**: Para atualizar a base de dados antes de iniciar o programa, utilize o comando:   
 `poetry run python3 legal-assistant --update-db`
 
-Para rodar o programa com interface web, execute o comando:
-`poetry run streamlit run /legal_assistant/app.py --server.fileWatcherType none`
+Para rodar o programa com interface web, execute o comando:   
+`poetry run streamlit run legal_assistant/app.py --server.fileWatcherType none`

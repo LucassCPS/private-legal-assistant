@@ -50,7 +50,7 @@ def handle_user_input(prompt, assistant):
         with st.spinner("Pensando..."):
             history_for_query = [m for m in st.session_state.chat_history if isinstance(m, (HumanMessage, AIMessage))][:-1]
             
-            processing_result = assistant.process_query(prompt, history_for_query)
+            processing_result = assistant.process_query(prompt, history_for_query, web_interface = True)
             final_response = processing_result.get("final_response")
             
             if processing_result.get("error") == "json_extraction_failed":

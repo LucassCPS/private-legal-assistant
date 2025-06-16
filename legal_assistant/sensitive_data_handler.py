@@ -41,6 +41,7 @@ class SensitiveDataHandler:
             - Nomes de parentes, filhos, filhas ou outros familiares
 
             Retorne apenas o que estiver explícito no texto.
+            Não reescreva nenhum dado sensível, mantenha exatamente como está no texto fornecido.
             Se nada for encontrado, retorne: { "dados": [] }
 
             # Exemplos de entradas e saídas esperadas:

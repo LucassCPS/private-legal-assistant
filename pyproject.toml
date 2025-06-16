@@ -6,6 +6,9 @@ authors = ["Lucas Coelho Pini de Sousa <lucas.pini@hotmail.com>"]
 readme = "README.md"
 packages = [{ include = "legal_assistant" }]
 
+[tool.poetry.scripts]
+legal-assistant = "legal_assistant.__main__:main"
+
 [tool.poetry.dependencies]
 python = "^3.12"
 llama-stack = "^0.2.2"

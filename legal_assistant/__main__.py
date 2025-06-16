@@ -20,7 +20,7 @@ def main_menu():
 if __name__ == "__main__":
     config_logger()
     if "--update-db" in sys.argv:
-        print("Atualizando a base de dados de inicializar o agente...")
+        print("Atualizando a base de dados antes de inicializar o agente...")
         update_database()
-        print("Base de dados atualizada com sucesso.")
+        print("Base de dados atualizado com sucesso.")
     main_menu()
