@@ -10,10 +10,10 @@ from langchain_chroma import Chroma
 
 from chromadb.config import Settings
 
-from config import CHROMA_PATH, DOCUMENTS_PATH, LLM_EMBEDDING_MODEL
+from legal_assistant.config import CHROMA_PATH, DOCUMENTS_PATH, LLM_EMBEDDING_MODEL
 
 import logging
-from logging_formatter import LOGGER_NAME
+from legal_assistant.logging_formatter import LOGGER_NAME
 
 logger = logging.getLogger(LOGGER_NAME)
 

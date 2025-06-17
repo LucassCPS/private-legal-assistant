@@ -1,8 +1,7 @@
 import sys
-from database import update_database
+from legal_assistant.database import update_database
 from legal_assistant.assistant import LegalAssistant
-
-from logging_formatter import config_logger
+from legal_assistant.logging_formatter import config_logger
 
 def main_menu():    
     print("\n----- Assistente Jurídico Virtual -----\nDigite '0' para encerrar o programa.")
@@ -17,7 +16,7 @@ def main_menu():
             continue
         assistant.process_query(user_input)
 
-if __name__ == "__main__":
+def main():
     config_logger()
     if "--update-db" in sys.argv:
         print("Atualizando a base de dados antes de inicializar o agente...")

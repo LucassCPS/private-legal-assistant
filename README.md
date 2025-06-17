@@ -37,10 +37,10 @@ De modo a garantir que o assistente tenha acesso aos modelos esperados pela apli
 
 ## Executar o programa
 Para rodar o programa e utilizá-lo via terminal, execute o seguinte comando:  
-`poetry run python3 legal-assistant`
+`poetry run legal-assistant`
 
 **Obs.**: Para atualizar a base de dados antes de iniciar o programa, utilize o comando:   
-`poetry run python3 legal-assistant --update-db`
+`poetry run legal-assistant --update-db`
 
 Para rodar o programa com interface web, execute o comando:   
 `poetry run streamlit run legal_assistant/app.py --server.fileWatcherType none`

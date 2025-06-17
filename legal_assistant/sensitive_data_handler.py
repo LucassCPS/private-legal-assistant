@@ -2,11 +2,11 @@ import re
 import json
 from langchain_core.messages import SystemMessage, HumanMessage
 
-from config import LLM_ANONYMIZATION_MODEL
-from utils import initialize_model
+from legal_assistant.config import LLM_ANONYMIZATION_MODEL
+from legal_assistant.utils import initialize_model
 
 import logging
-from logging_formatter import LOGGER_NAME
+from legal_assistant.logging_formatter import LOGGER_NAME
 
 logger = logging.getLogger(LOGGER_NAME)
 

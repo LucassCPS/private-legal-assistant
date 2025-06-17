@@ -6,13 +6,13 @@ from langchain_chroma import Chroma
 from langchain_core.messages import HumanMessage
 from chromadb.config import Settings
 
-from database import get_embedding_function
-from utils import initialize_model
+from legal_assistant.database import get_embedding_function
+from legal_assistant.utils import initialize_model
 from legal_assistant.sensitive_data_handler import SensitiveDataHandler, JsonExtractionError
-from config import CHROMA_PATH, LLM_RESPONSE_GENERATION_MODEL
+from legal_assistant.config import CHROMA_PATH, LLM_RESPONSE_GENERATION_MODEL
 
 import logging
-from logging_formatter import LOGGER_NAME
+from legal_assistant.logging_formatter import LOGGER_NAME
 
 logger = logging.getLogger(LOGGER_NAME)
 
