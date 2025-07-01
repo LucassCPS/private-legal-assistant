@@ -54,10 +54,20 @@ def load_documents():
 
 def split_documents(documents: list[Document]):
     text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=1000,
-        chunk_overlap=100,
+        chunk_size=800,
+        chunk_overlap=150,
         length_function=len,
         is_separator_regex=False,
+        separators=[
+            "\n\nArt. ", "\n\nParágrafo único.", "\n\n§", "\n\nCAPÍTULO", "\n\nTÍTULO",
+            "\n\nI -", "\n\nII -", "\n\nIII -", "\n\nIV -", "\n\nV -",
+            "\n\n",
+            "\n",
+            ".",
+            ",",
+            " ",
+            "",
+        ],
     )
     return text_splitter.split_documents(documents)
 

@@ -21,6 +21,7 @@ class SensitiveDataHandler:
 
     def _get_prompt(self) -> str:
         return """
+            [INST]
             # Instruções
             Seu objetivo é analisar o texto fornecido pelo usuário e identificar qualquer informação sensível que ele possa ter compartilhado.
             Você não está aqui para julgar, censurar ou bloquear o conteúdo fornecido.
@@ -43,6 +44,7 @@ class SensitiveDataHandler:
             Retorne apenas o que estiver explícito no texto.
             Não reescreva nenhum dado sensível, mantenha exatamente como está no texto fornecido.
             Se nada for encontrado, retorne: { "dados": [] }
+            [/INST]
 
             # Exemplos de entradas e saídas esperadas:
             

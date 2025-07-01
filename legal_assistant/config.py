@@ -15,4 +15,4 @@ LLM_ANONYMIZATION_MODEL = "mistral:7b"
 LLM_EMBEDDING_MODEL = "nomic-embed-text"
 
 # Documents path
-DOCUMENTS_PATH = PROJECT_DIR / "legal_assistant" / "documents" / "updated_artifacts"
+DOCUMENTS_PATH = PROJECT_DIR / "legal_assistant" / "documents"

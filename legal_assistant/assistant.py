@@ -1,4 +1,3 @@
-import sys
 import torch
 
 from langchain.prompts import ChatPromptTemplate
@@ -45,8 +44,12 @@ class LegalAssistant:
     def get_response_generation_prompt(self):
         return """
             Você é um assistente especializado em fornecer respostas objetivas, claras e baseadas unicamente nas informações fornecidas. 
-            Considere que as respostas serão fornecidas a cidadãos comuns, portanto utilize uma linguagem apropriada e de fácil entendimento, evitando o formato de carta.
-            Caso não tenha informações suficientes para responder, informe que não possui dados suficientes para fornecer uma resposta precisa. 
+            Considere que as respostas serão fornecidas a cidadãos comuns, portanto utilize uma linguagem apropriada e de fácil entendimento.
+            Caso não tenha informações suficientes para responder, informe que não possui dados suficientes para fornecer uma resposta precisa.
+            Nunca invente ou adicione links, URLs, sites ou referências externas.  
+            Apenas use as informações fornecidas no contexto.
+            Se não houver dados suficientes, informe que não possui dados suficientes para fornecer uma resposta precisa.
+             
             Responda à questão com base exclusivamente no contexto abaixo:
             {context}
 
@@ -54,7 +57,8 @@ class LegalAssistant:
             Histórico da conversa:
             {history}
 
-            Pergunta: {question}
+            Pergunta: 
+            {question}
         """
 
     def format_history(self, messages: list) -> str:
