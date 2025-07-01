@@ -1,5 +1,5 @@
 import sys
-from legal_assistant.database import update_database
+from legal_assistant.database import update_database, check_database_exists, populate_database
 from legal_assistant.assistant import LegalAssistant
 from legal_assistant.logging_formatter import config_logger
 
@@ -22,4 +22,8 @@ def main():
         print("Atualizando a base de dados antes de inicializar o agente...")
         update_database()
         print("Base de dados atualizado com sucesso.")
+    elif not check_database_exists():
+        print("Inicializando pela primeira vez a base de dados antes de inicializar o agente...")
+        populate_database()
+
     main_menu()
