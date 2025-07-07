@@ -3,11 +3,6 @@
   <p>
     <strong>Um assistente virtual focado em privacidade para orientação jurídica sobre registro civil.</strong>
   </p>
-  <p>
-    <a href="#-sobre-o-projeto">Sobre</a> •
-    <a href="#-configuração">Configuração</a> •
-    <a href="#-como-executar">Execução</a>
-  </p>
 </div>
 
 ## Sobre o Projeto
