@@ -2,6 +2,9 @@ import streamlit as st
 from langchain_core.messages import AIMessage, HumanMessage
 from legal_assistant.assistant import LegalAssistant
 
+from legal_assistant.logging_formatter import config_logger
+from legal_assistant.database import check_database_exists, populate_database
+
 def setup_page_config():
     st.set_page_config(
         page_title="Assistente Jurídico Virtual",
@@ -27,7 +30,7 @@ def display_processing_details(details):
         st.code(details.get("anonymized_query"), language="text")
         st.write("**Dados Sensíveis Identificados:**")
         st.json(details.get("replacements"))
-        st.write("**Resposta Bruta da IA (antes de desanonimizar):**")
+        st.write("**Resposta Bruta da IA (antes de reidentificar):**")
         st.code(details.get("raw_response"), language="text")
 
 def initialize_chat_history():
@@ -63,6 +66,13 @@ def handle_user_input(prompt, assistant):
                 )
 
 def main():
+    config_logger()
+    if not check_database_exists():
+        with st.spinner("A base de dados está sendo preparada pela primeira vez. Isso pode levar alguns minutos..."):
+            populate_database()
+        st.success("Base de dados pronta!")
+        st.rerun()
+    
     setup_page_config()
     assistant = load_assistant()
     initialize_chat_history()

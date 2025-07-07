@@ -108,7 +108,7 @@ class LegalAssistant:
             
             self.log_used_sources(db_similar_results)
             logger.info("Anonymized response: %s", response_text)
-
+            
             final_response = self.sensitive_data_handler.deanonymize(response_text, replacements)
 
             if not web_interface:

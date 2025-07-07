@@ -31,9 +31,8 @@ class CustomFormatter(logging.Formatter):
 def config_logger(logger_level=logging.DEBUG):
     logger = logging.getLogger(LOGGER_NAME)
     logger.setLevel(logger_level)
-    logger.propagate = False # Importante para evitar logs duplicados
+    logger.propagate = False
 
-    # Verifica se o logger já tem handlers para não adicionar de novo
     if not logger.handlers:
         ch = logging.StreamHandler()
         ch.setLevel(logger_level)
