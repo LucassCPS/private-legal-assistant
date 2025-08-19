@@ -34,7 +34,7 @@ De modo a garantir que o assistente tenha acesso aos modelos esperados pela apli
 `ollama pull mistral:7b`  
 `ollama pull gemma3:1b`  
 
-**Obs.**: Os modelos são grandes. Recomenda-se ter pelo menos 6 GB de espaço livre em disco (nomic-embed-text: ~275MB, mistral:7b: ~4.1GB, gemma:2b: ~1.7GB).
+**Obs.**: Os modelos são grandes. Recomenda-se ter pelo menos 6 GB de espaço livre em disco (nomic-embed-text: ~275MB, mistral:7b: ~4.1GB, gemma3:1b: ~815MB).
 
 ## Como Executar
 

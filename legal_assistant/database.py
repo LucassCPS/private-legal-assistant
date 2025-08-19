@@ -102,7 +102,15 @@ def add_to_chroma(chunks: list[Document]):
     if len(new_chunks):
         logger.info(f"New chunks to be added: {len(new_chunks)}")
         new_chunk_ids = [chunk.metadata["id"] for chunk in new_chunks]
-        db.add_documents(new_chunks, ids=new_chunk_ids)
+        batch_size = 1000
+
+        for i in range(0, len(new_chunks), batch_size):
+            batch_end = i + batch_size
+            batch_chunks = new_chunks[i:batch_end]
+            batch_ids = new_chunk_ids[i:batch_end]
+
+            logger.info(f"Adding batch {i//batch_size + 1}: {len(batch_chunks)} chunks...")
+            db.add_documents(batch_chunks, ids=batch_ids)
     else:
         logger.info("There are no new chunks to be added to the database.")
 
